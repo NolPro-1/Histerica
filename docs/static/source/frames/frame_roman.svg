@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" shape-rendering="crispEdges">
+  <!-- Roman Laurel Frame - pixel art -->
+  <rect x="0" y="0" width="80" height="4" fill="#8B4513"/>
+  <rect x="0" y="76" width="80" height="4" fill="#8B4513"/>
+  <rect x="0" y="0" width="4" height="80" fill="#8B4513"/>
+  <rect x="76" y="0" width="4" height="80" fill="#8B4513"/>
+  <!-- inner gold -->
+  <rect x="4" y="4" width="72" height="2" fill="#CD853F"/>
+  <rect x="4" y="74" width="72" height="2" fill="#CD853F"/>
+  <rect x="4" y="4" width="2" height="72" fill="#CD853F"/>
+  <rect x="74" y="4" width="2" height="72" fill="#CD853F"/>
+  <!-- laurel leaves left -->
+  <rect x="2" y="20" width="2" height="4" fill="#228B22"/>
+  <rect x="4" y="18" width="2" height="2" fill="#228B22"/>
+  <rect x="2" y="30" width="2" height="4" fill="#228B22"/>
+  <rect x="4" y="28" width="2" height="2" fill="#228B22"/>
+  <rect x="2" y="40" width="2" height="4" fill="#228B22"/>
+  <rect x="4" y="38" width="2" height="2" fill="#228B22"/>
+  <rect x="2" y="50" width="2" height="4" fill="#228B22"/>
+  <rect x="4" y="48" width="2" height="2" fill="#228B22"/>
+  <rect x="2" y="60" width="2" height="4" fill="#228B22"/>
+  <rect x="4" y="58" width="2" height="2" fill="#228B22"/>
+  <!-- laurel leaves right -->
+  <rect x="76" y="20" width="2" height="4" fill="#228B22"/>
+  <rect x="74" y="18" width="2" height="2" fill="#228B22"/>
+  <rect x="76" y="30" width="2" height="4" fill="#228B22"/>
+  <rect x="74" y="28" width="2" height="2" fill="#228B22"/>
+  <rect x="76" y="40" width="2" height="4" fill="#228B22"/>
+  <rect x="74" y="38" width="2" height="2" fill="#228B22"/>
+  <rect x="76" y="50" width="2" height="4" fill="#228B22"/>
+  <rect x="74" y="48" width="2" height="2" fill="#228B22"/>
+  <rect x="76" y="60" width="2" height="4" fill="#228B22"/>
+  <rect x="74" y="58" width="2" height="2" fill="#228B22"/>
+  <!-- corner medallions -->
+  <rect x="8" y="8" width="6" height="6" fill="#CD853F"/>
+  <rect x="66" y="8" width="6" height="6" fill="#CD853F"/>
+  <rect x="8" y="66" width="6" height="6" fill="#CD853F"/>
+  <rect x="66" y="66" width="6" height="6" fill="#CD853F"/>
+</svg>
