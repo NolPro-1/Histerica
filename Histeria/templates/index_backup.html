@@ -1,0 +1,2410 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Husteria — мобильный прототип</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700&family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header">
+        <div class="logo">Husteria</div>
+        <div class="header-right">
+          <div class="status">
+            <span class="status-dot"></span>
+            <span>Онлайн</span>
+          </div>
+          <div class="coins-hud hidden" title="Монеты">
+            <div class="coins-counter">
+              <span class="coins-value" id="coins-value">1039</span>
+              <span class="coins-icon" aria-hidden="true">
+                <img
+                  class="coin-face coin-front"
+                  src="{{ url_for('static', filename='source/sprites/coin_front.png') }}"
+                  alt=""
+                  onerror="this.src='{{ url_for('static', filename='source/zaglushka.png') }}'"
+                />
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <section class="screen active" id="login">
+          <div class="screen-header">
+            <h1>Вход</h1>
+            <p>Вернитесь в мир музеев и времени.</p>
+          </div>
+          <div class="auth-banner">
+            <div class="auth-badge">AR</div>
+            <div>
+              <h2>Экспедиция дня</h2>
+              <p>Херсонес · 4 объекта · событие «Грифон»</p>
+            </div>
+          </div>
+          <form class="card form" data-form="login">
+            <label>
+              Никнейм или почта
+              <input type="text" name="identity" placeholder="HusteriaPlayer" />
+            </label>
+            <label>
+              Пароль
+              <input type="password" name="password" placeholder="••••••••" />
+            </label>
+            <div class="form-message" data-message="login"></div>
+            <button type="button" class="primary" data-auth="login">Войти</button>
+            <button type="button" class="ghost" data-screen="register">
+              Создать аккаунт
+            </button>
+          </form>
+        </section>
+
+        <section class="screen" id="register">
+          <div class="screen-header">
+            <h1>Регистрация</h1>
+            <p>Соберите команду и начните охоту за артефактами.</p>
+          </div>
+          <div class="auth-banner">
+            <div class="auth-badge">XP</div>
+            <div>
+              <h2>Стартовый набор</h2>
+              <p>Скин «Хранитель времени» + 3 жизни на музей</p>
+            </div>
+          </div>
+          <form class="card form" data-form="register">
+            <label>
+              Никнейм
+              <input type="text" name="nickname" placeholder="HusteriaPlayer" />
+            </label>
+            <label>
+              Почта
+              <input type="email" name="email" placeholder="you@example.com" />
+            </label>
+            <label>
+              Пароль
+              <input type="password" name="password" placeholder="••••••••" />
+            </label>
+            <label>
+              Подтверждение пароля
+              <input type="password" name="confirm" placeholder="••••••••" />
+            </label>
+            <div class="form-message" data-message="register"></div>
+            <button type="button" class="primary" data-auth="register">
+              Создать аккаунт
+            </button>
+            <button type="button" class="ghost" data-screen="login">
+              Уже есть аккаунт
+            </button>
+          </form>
+        </section>
+
+        <section class="screen" id="home">
+          <div class="screen-header">
+            <h1>Главное меню</h1>
+            <p>Быстрый доступ к ключевым разделам игры.</p>
+          </div>
+          <div class="museum-carousel" data-carousel>
+            <div class="museum-empty">Музеи появятся после добавления в админ-панели.</div>
+          </div>
+          <div class="card museum-detail">
+            <div>
+              <h2 id="museum-title">Херсонес</h2>
+              <p id="museum-description">
+                Античный музей-заповедник с легендарными раскопками и морским
+                побережьем.
+              </p>
+            </div>
+            <button type="button" class="primary map-cta" id="selected-museum-map">
+              Перейти к карте музея
+            </button>
+            <div class="museum-meta">
+              <div>
+                <h3>Лут</h3>
+                <p id="museum-loot">Амфора, статуэтка, событие «Грифон»</p>
+              </div>
+              <div>
+                <h3>Адрес</h3>
+                <p id="museum-address">Севастополь, ул. Древняя, 1</p>
+              </div>
+            </div>
+          </div>
+          <div class="home-museum-list" id="home-museum-list"></div>
+          <button type="button" class="primary home-map-button" id="open-map-button">
+            Открыть карту города
+          </button>
+        </section>
+
+        <section class="screen" id="map">
+          <div class="city-selector">
+            <div class="city-selector-header">
+              <h2>Выбор города</h2>
+              <p>Сначала определитесь с городом, затем выбирайте музеи.</p>
+            </div>
+            <div class="city-picker" id="city-picker"></div>
+          </div>
+          <div class="screen-header">
+            <h1>Карта локаций</h1>
+            <p>Выберите музей и отправляйтесь в прошлое.</p>
+          </div>
+          <div class="city-museums">
+            <h2 id="city-title">Севастополь</h2>
+            <div class="museum-list" id="city-museum-list"></div>
+          </div>
+          <div class="card map-card interactive-map-card map-window">
+            <div id="city-map" class="city-map" role="application" aria-label="Интерактивная карта города"></div>
+            <p class="map-status" id="map-status">
+              Загружаем интерактивную карту и метки музеев...
+            </p>
+          </div>
+        </section>
+
+        <section class="screen" id="museum-location">
+          <div class="cloud-transition" id="cloud-transition" aria-hidden="true">
+            <div class="cloud cloud-left"></div>
+            <div class="cloud cloud-right"></div>
+          </div>
+          <div class="screen-header">
+            <h1 id="location-title">Локация музея</h1>
+            <p>Горизонтальный режим карты локации и точки артефактов.</p>
+            <button type="button" class="ghost" id="back-to-map">Назад к карте</button>
+          </div>
+          <div class="card location-card">
+            <div class="location-landscape" id="location-landscape">
+              <div class="location-pan-layer" id="location-pan-layer">
+                <img id="location-map-image" alt="Карта локации" draggable="false" />
+                <div class="location-map-ui-hint">Зажмите и перетаскивайте карту</div>
+                <div id="location-artifacts-layer" class="location-artifacts-layer"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="puzzle-minigame">
+          <div class="screen-header">
+            <h1 id="puzzle-title">Пазл головоломка</h1>
+            <p id="puzzle-subtitle">Соберите изображение чтобы получить артефакт</p>
+            <button type="button" class="ghost" id="puzzle-quit">Выход</button>
+          </div>
+          <div class="card puzzle-card">
+            <div class="puzzle-container">
+              <div class="puzzle-info">
+                <div class="puzzle-artifact-preview">
+                  <img id="puzzle-artifact-image" alt="Артефакт" src="" />
+                </div>
+                <div class="puzzle-stats">
+                  <div class="puzzle-stat">
+                    <span class="stat-label">Ходов:</span>
+                    <span class="stat-value" id="puzzle-moves">0</span>
+                  </div>
+                  <div class="puzzle-stat">
+                    <span class="stat-label">Попыток:</span>
+                    <span class="stat-value" id="puzzle-attempts">1</span>
+                  </div>
+                  <div class="puzzle-stat">
+                    <span class="stat-label">Сложность:</span>
+                    <span class="stat-value" id="puzzle-difficulty">Medium</span>
+                  </div>
+                </div>
+              </div>
+              <div class="puzzle-board" id="puzzle-board"></div>
+              <div class="puzzle-controls">
+                <button type="button" class="primary" id="puzzle-hint">💡 Подсказка</button>
+                <button type="button" class="ghost" id="puzzle-reset">🔄 Заново</button>
+              </div>
+            </div>
+            <div class="puzzle-result hidden" id="puzzle-result">
+              <div class="puzzle-result-content">
+                <h2 id="puzzle-result-title">Поздравляем!</h2>
+                <p id="puzzle-result-message">Вы соткали артефакт!</p>
+                <div id="puzzle-result-reward"></div>
+                <button type="button" class="primary" id="puzzle-claim-artifact">Получить артефакт</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="quiz-minigame">
+          <div class="screen-header">
+            <h1 id="quiz-title">Квиз</h1>
+            <p id="quiz-subtitle">Ответьте на вопросы чтобы получить артефакт</p>
+            <button type="button" class="ghost" id="quiz-quit">Выход</button>
+          </div>
+          <div class="card quiz-card">
+            <div class="quiz-container">
+              <div class="quiz-artifact-preview">
+                <img id="quiz-artifact-image" alt="Артефакт" src="" />
+              </div>
+              <div class="quiz-progress">
+                <span id="quiz-progress-text">Вопрос 1 из 10</span>
+                <div class="quiz-progress-bar">
+                  <div id="quiz-progress-fill" class="quiz-progress-fill"></div>
+                </div>
+              </div>
+              <div class="quiz-question-display">
+                <h3 id="quiz-question-text">Вопрос?</h3>
+                <div id="quiz-answers" class="quiz-answers">
+                  <!-- Answers will be inserted here -->
+                </div>
+                <div id="quiz-open-answer" class="quiz-open-answer hidden">
+                  <input type="text" id="quiz-open-input" placeholder="Ваш ответ" />
+                  <button type="button" id="quiz-submit-open">Ответить</button>
+                </div>
+              </div>
+              <div class="quiz-controls">
+                <button type="button" class="primary" id="quiz-next">Далее</button>
+              </div>
+            </div>
+            <div class="quiz-result hidden" id="quiz-result">
+              <div class="quiz-result-content">
+                <h2 id="quiz-result-title">Результат</h2>
+                <p id="quiz-result-message">Вы ответили правильно на X из 10 вопросов.</p>
+                <button type="button" class="primary" id="quiz-claim-artifact">Получить артефакт</button>
+                <button type="button" class="ghost" id="quiz-retry">Попробовать снова</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="inventory">
+          <div class="screen-header">
+            <h1>Инвентарь</h1>
+            <p>Управляйте скинами, предметами и трофеями музеев.</p>
+          </div>
+          <div class="inventory-tabs">
+            <button type="button" class="tab active" data-tab="skins">Скины</button>
+            <button type="button" class="tab" data-tab="items">Предметы</button>
+            <button type="button" class="tab" data-tab="rewards">Награды</button>
+          </div>
+          <div class="tab-panel active" data-panel="skins">
+            <div class="inventory-grid" id="inventory-skins"></div>
+          </div>
+          <div class="tab-panel" data-panel="items">
+            <div class="inventory-grid" id="inventory-items"></div>
+          </div>
+          <div class="tab-panel" data-panel="rewards">
+            <div class="inventory-grid" id="inventory-rewards"></div>
+          </div>
+        </section>
+
+        <section class="screen" id="events">
+          <div class="screen-header">
+            <h1>Временные события</h1>
+            <p>Лимитированные награды и специальные задания.</p>
+          </div>
+          <div class="card event-card">
+            <div>
+              <h2>Грифон в Херсонесе</h2>
+              <p>Получите 4 лимитированных предмета за один заход.</p>
+            </div>
+            <button type="button" class="primary">Войти</button>
+          </div>
+          <div class="card event-card">
+            <div>
+              <h2>Ледовое побоище</h2>
+              <p>10 вопросов для получения трофея музея.</p>
+            </div>
+            <button type="button" class="ghost">Скоро</button>
+          </div>
+        </section>
+
+        <section class="screen" id="profile">
+          <div class="screen-header">
+            <h1>Профиль</h1>
+            <p>Статистика, награды и персональные настройки.</p>
+            <button
+              type="button"
+              class="settings-gear"
+              data-screen="settings"
+              aria-label="Настройки"
+              title="Настройки"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M12 8.75a3.25 3.25 0 1 0 0 6.5 3.25 3.25 0 0 0 0-6.5Zm9 3.25c0-.5-.04-1-.12-1.48l2.06-1.6-2-3.46-2.5 1a8.9 8.9 0 0 0-2.56-1.48l-.38-2.7H10.5l-.38 2.7c-.9.32-1.78.8-2.56 1.48l-2.5-1-2 3.46 2.06 1.6c-.08.48-.12.98-.12 1.48s.04 1 .12 1.48l-2.06 1.6 2 3.46 2.5-1c.78.68 1.66 1.16 2.56 1.48l.38 2.7h4.5l.38-2.7c.9-.32 1.78-.8 2.56-1.48l2.5 1 2-3.46-2.06-1.6c.08-.48.12-.98.12-1.48Z"
+                />
+              </svg>
+            </button>
+          </div>
+            <div class="profile-layout compact-profile" style="grid-template-columns: 1fr;">
+              <div class="card profile-left compact-profile-card" style="padding: 14px 10px 10px 10px; display: flex; align-items: center; gap: 14px;">
+                <div class="avatar-frame compact-avatar-frame" style="min-width: 72px; width: 72px; height: 72px; margin: 0;">
+                  <img
+                    id="profile-avatar"
+                    src="{{ url_for('static', filename='source/zaglushka.png') }}"
+                    alt="Аватар игрока"
+                    style="object-fit:cover;width:100%;height:100%;"
+                  />
+                </div>
+                <form id="avatar-upload-form" enctype="multipart/form-data">
+                  <input type="file" id="avatar-input" name="avatar" accept=".jpg,.jpeg,.png" style="display:none;" />
+                  <label for="avatar-input" class="primary">Фото</label>
+                  <button type="submit" class="ghost">OK</button>
+                </form>
+                <div style="flex:1; min-width:0;">
+                  <h2 id="profile-name" style="margin:0 0 6px 0; font-size:1.05rem; text-align:left;">HusteriaPlayer</h2>
+                  <div class="profile-stats compact-profile-stats" style="margin:0; padding:0; background:none; box-shadow:none; border-radius:0; gap:8px; display:flex; align-items:center; flex-wrap:wrap;">
+                    <div class="stat-icon-item" data-tooltip="Пройдено музеев"><strong id="profile-museums">0</strong></div>
+                    <div class="stat-icon-item" data-tooltip="Собрано артефактов"><strong id="profile-artifacts">0</strong></div>
+                    <div class="stat-icon-item" data-tooltip="Рейтинг"><strong id="profile-rating">0</strong></div>
+                    <button type="button" id="logout-btn" class="ghost" style="margin-left:auto; margin-top:0; font-size:0.85rem; padding:4px 8px;">Выйти</button>
+                  </div>
+                </div>
+                <script>
+                  const profileAvatar = document.getElementById("profile-avatar");
+                  const avatarInput = document.getElementById("avatar-input");
+                  const avatarUploadForm = document.getElementById("avatar-upload-form");
+                  let avatarFile;
+                  if (avatarInput) {
+                    avatarInput.addEventListener("change", (e) => {
+                      const file = e.target.files[0];
+                      if (file && file.type.startsWith("image/")) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          if (profileAvatar) profileAvatar.src = ev.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                        avatarFile = file;
+                      }
+                    });
+                  }
+                  if (avatarUploadForm) {
+                    avatarUploadForm.addEventListener("submit", async (e) => {
+                      e.preventDefault();
+                      if (!avatarFile) {
+                        showToast("Выберите изображение для аватара.");
+                        return;
+                      }
+                      const formData = new FormData();
+                      formData.append("avatar", avatarFile);
+                      // Получаем nickname из DOM
+                      const profileNameEl = document.getElementById("profile-name");
+                      if (profileNameEl && profileNameEl.textContent) {
+                        formData.append("nickname", profileNameEl.textContent.trim());
+                      }
+                      const res = await fetch("/api/profile/avatar", {
+                        method: "POST",
+                        body: formData,
+                      });
+                      if (res.ok) {
+                        showToast("Аватар обновлён!");
+                        avatarFile = null;
+                        avatarInput.value = "";
+                      } else {
+                        showToast("Ошибка загрузки аватара.");
+                      }
+                    });
+                  }
+
+                  // ЛОГАУТ — сброс кэша профиля и возврат на экран входа
+                  const logoutBtn = document.getElementById("logout-btn");
+                  if (logoutBtn) {
+                    logoutBtn.addEventListener("click", () => {
+                      // Очищаем localStorage/sessionStorage (если использовались)
+                      if (window.localStorage) localStorage.clear();
+                      if (window.sessionStorage) sessionStorage.clear();
+                      // Сброс переменных профиля (если есть)
+                      if (typeof authenticated !== "undefined") authenticated = false;
+                      // Возврат на экран входа
+                      if (typeof showScreen === "function") showScreen("login");
+                      // Сброс DOM профиля
+                      if (profileName) profileName.textContent = "";
+                      if (profileMuseums) profileMuseums.textContent = "0";
+                      if (profileArtifacts) profileArtifacts.textContent = "0";
+                      if (profileRating) profileRating.textContent = "0";
+                      if (profileAvatar) profileAvatar.src = "{{ url_for('static', filename='source/zaglushka.png') }}";
+                      // Можно добавить showToast("Вы вышли из аккаунта");
+                    });
+                  }
+
+                  // Подсказки по иконкам статов
+                  const statItems = document.querySelectorAll('.stat-icon-item');
+                  let statTooltipTimeout = null;
+                  let statTooltipEl = null;
+
+                  const showStatTooltip = (target, text) => {
+                    if (!target || !text) return;
+                    if (statTooltipEl) {
+                      statTooltipEl.remove();
+                      statTooltipEl = null;
+                      clearTimeout(statTooltipTimeout);
+                    }
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'stat-tooltip';
+                    tooltip.textContent = text;
+                    document.body.appendChild(tooltip);
+
+                    const rect = target.getBoundingClientRect();
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    const left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+                    const top = rect.top - tooltipRect.height - 10;
+                    tooltip.style.left = Math.max(8, Math.min(left, window.innerWidth - tooltipRect.width - 8)) + 'px';
+                    tooltip.style.top = Math.max(8, top) + 'px';
+
+                    statTooltipEl = tooltip;
+                    statTooltipTimeout = setTimeout(() => {
+                      tooltip.remove();
+                      statTooltipEl = null;
+                      statTooltipTimeout = null;
+                    }, 2000);
+                  };
+
+                  statItems.forEach((item) => {
+                    item.style.cursor = 'pointer';
+                    item.addEventListener('click', () => {
+                      const tooltip = item.dataset.tooltip;
+                      if (tooltip) {
+                        showStatTooltip(item, tooltip);
+                      }
+                    });
+                  });
+                </script>
+              </div>
+            <div class="card profile-right">
+              <div class="banner">
+                <div class="banner-text">
+                  <h3>Баннер профиля</h3>
+                  <p>Сюда позже добавим персональный стиль.</p>
+                </div>
+              </div>
+              <div class="admin-access">
+                <h3>Админ-панель</h3>
+                <input
+                  type="password"
+                  id="admin-password"
+                  placeholder="Введите пароль"
+                />
+                <button type="button" class="primary" id="admin-login">
+                  Войти в панель
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="admin">
+          <div class="screen-header">
+            <h1>Административная панель</h1>
+            <p>Создание музеев и артефактов.</p>
+          </div>
+          <div class="grid">
+            <div class="card admin-card">
+              <h2>Создать музей</h2>
+              <label>
+                Название
+                <input type="text" id="museum-name" />
+              </label>
+              <label>
+                Адрес
+                <input type="text" id="museum-address-input" />
+              </label>
+              <label>
+                Описание
+                <textarea id="museum-description-input" rows="3"></textarea>
+              </label>
+              <label>
+                Город
+                <input type="text" id="museum-city" placeholder="Севастополь" />
+              </label>
+              <label>
+                Координаты (необязательно)
+                <input
+                  type="text"
+                  id="museum-coordinates"
+                  placeholder="44.6182, 33.5254 или 44°37′06″ с. ш. 33°31′27″ в. д."
+                />
+              </label>
+              <label>
+                Фото музея (.jpg, .png)
+                <input type="file" id="museum-photo" accept=".jpg,.jpeg,.png" />
+              </label>
+              <label>
+                Карта внутренней локации (.jpg, .png)
+                <input type="file" id="museum-location-map" accept=".jpg,.jpeg,.png" />
+              </label>
+              <div class="admin-actions-row">
+                <button type="button" class="primary" id="create-museum">
+                  Сохранить музей
+                </button>
+                <button type="button" class="ghost" id="cancel-edit-museum">
+                  Отмена
+                </button>
+              </div>
+              <div class="admin-list" id="museum-list"></div>
+            </div>
+            <div class="card admin-card">
+              <h2>Редактор артефактов</h2>
+              <label>
+                Музей
+                <select id="artifact-museum"></select>
+              </label>
+              <div class="admin-location-map-wrap">
+                <div id="admin-location-map" class="admin-location-map"></div>
+                <p class="admin-map-hint" id="artifact-point-hint">Нажмите на карту, чтобы выбрать точку артефакта.</p>
+              </div>
+              <label>
+                Название артефакта
+                <input type="text" id="artifact-name" />
+              </label>
+              <label>
+                Сложность
+                <input type="text" id="artifact-difficulty" />
+              </label>
+              <label>
+                Мини-игра
+                <select id="artifact-minigame">
+                  <option value="puzzle">Пазл 4x4</option>
+                  <option value="quiz">Квиз</option>
+                </select>
+              </label>
+              <div id="quiz-settings" class="quiz-settings" style="display: none;">
+                <h4>Настройки квиза</h4>
+                <div id="quiz-questions">
+                  <div class="quiz-question" data-index="0">
+                    <label>Вопрос 1</label>
+                    <select class="question-type">
+                      <option value="test">Тестовый</option>
+                      <option value="open">Открытый</option>
+                    </select>
+                    <input type="text" class="question-text" placeholder="Текст вопроса" />
+                    <div class="test-options" style="display: block;">
+                      <input type="text" class="correct-answer" placeholder="Правильный ответ" />
+                      <input type="text" class="wrong-answer1" placeholder="Неправильный ответ 1" />
+                      <input type="text" class="wrong-answer2" placeholder="Неправильный ответ 2" />
+                      <input type="text" class="wrong-answer3" placeholder="Неправильный ответ 3" />
+                    </div>
+                    <div class="open-options" style="display: none;">
+                      <input type="text" class="open-answer" placeholder="Ответ на вопрос" />
+                    </div>
+                  </div>
+                </div>
+                <button type="button" id="add-question">Добавить вопрос</button>
+              </div>
+              <label>
+                Изображение (.jpg, .png)
+                <input type="file" id="artifact-image" accept=".jpg,.jpeg,.png" />
+              </label>
+              <button type="button" class="primary" id="create-artifact">
+                Сохранить артефакт в выбранной точке
+              </button>
+              <div class="admin-list" id="artifact-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="settings">
+          <div class="screen-header">
+            <h1>Настройки</h1>
+            <p>Безопасность и управление аккаунтом.</p>
+          </div>
+          <div class="card">
+            <h2>Двухэтапная защита</h2>
+            <p>Включена · Последнее подтверждение 2 дня назад.</p>
+          </div>
+          <div class="card">
+            <h2>Смена почты</h2>
+            <p>Требуется пароль и подтверждение.</p>
+          </div>
+          <div class="card">
+            <h2>Смена пароля</h2>
+            <p>Обновите доступ к аккаунту.</p>
+          </div>
+        </section>
+
+        <section class="screen" id="leaders">
+          <div class="screen-header">
+            <h1>Лидеры</h1>
+            <p>Топ игроков по городу и стране.</p>
+          </div>
+          <div class="card">
+            <h2>Топ по городу</h2>
+            <ol>
+              <li>Историк_1 · 128 предметов</li>
+              <li>Стайм_Великий · 120 предметов</li>
+              <li>HusteriaPlayer · 98 предметов</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h2>Топ по стране</h2>
+            <ol>
+              <li>Музейный_Охотник · 502 предмета</li>
+              <li>Артефакт_Лорд · 490 предметов</li>
+              <li>Летописец · 471 предмет</li>
+            </ol>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav locked hidden" aria-label="Главная навигация">
+        <div class="bottom-nav-inner">
+          <button type="button" data-screen="home" aria-label="Главное">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 11.5 12 5l8 6.5v7a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1v-7Z" />
+            </svg>
+          </button>
+          <button type="button" data-screen="inventory" aria-label="Инвентарь">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 7h14l-1.5 12H6.5L5 7Zm4-3h6l1 3H8l1-3Z" />
+            </svg>
+          </button>
+          <button type="button" data-screen="events" aria-label="События">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4a8 8 0 1 0 7.73 10H13V7.27A8 8 0 0 0 12 4Zm2 3.1V11h3.9A6.02 6.02 0 0 0 14 7.1Z" />
+            </svg>
+          </button>
+          <button type="button" data-screen="profile" aria-label="Профиль">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2-8 4.5V20h16v-1.5c0-2.5-3.58-4.5-8-4.5Z" />
+            </svg>
+          </button>
+          <button type="button" data-screen="leaders" aria-label="Лидеры">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 4h12v2a5 5 0 0 1-4 4.9V14h2v2H8v-2h2v-3.1A5 5 0 0 1 6 6V4Zm-2 3h2v1a7 7 0 0 0 1 3.5A4 4 0 0 1 4 9V7Zm16 0h-2v1a7 7 0 0 1-1 3.5A4 4 0 0 0 20 9V7Z" />
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </div>
+    <div class="toast" id="toast"></div>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <script>
+      const appRoot = document.querySelector(".app");
+      const screens = document.querySelectorAll(".screen");
+      const navButtons = document.querySelectorAll(".bottom-nav [data-screen]");
+      const authNavButtons = document.querySelectorAll(".form [data-screen]");
+      const authButtons = document.querySelectorAll("[data-auth]");
+      const bottomNav = document.querySelector(".bottom-nav");
+      const tabs = document.querySelectorAll(".tab");
+      const panels = document.querySelectorAll(".tab-panel");
+      const itemCards = document.querySelectorAll(".item-card");
+      const messageBoxes = document.querySelectorAll(".form-message");
+      let museumTiles = [];
+      const museumTitle = document.getElementById("museum-title");
+      const museumDescription = document.getElementById("museum-description");
+      const museumLoot = document.getElementById("museum-loot");
+      const museumAddress = document.getElementById("museum-address");
+      const selectedMuseumMapButton = document.getElementById("selected-museum-map");
+      const openMapButton = document.getElementById("open-map-button");
+      const homeMuseumList = document.getElementById("home-museum-list");
+      const carousel = document.querySelector("[data-carousel]");
+      const toast = document.getElementById("toast");
+      const profileName = document.getElementById("profile-name");
+      const profileMuseums = document.getElementById("profile-museums");
+      const profileArtifacts = document.getElementById("profile-artifacts");
+      const profileRating = document.getElementById("profile-rating");
+      const inventorySkins = document.getElementById("inventory-skins");
+      const inventoryItems = document.getElementById("inventory-items");
+      const inventoryRewards = document.getElementById("inventory-rewards");
+      const adminPassword = document.getElementById("admin-password");
+      const adminLogin = document.getElementById("admin-login");
+      const museumNameInput = document.getElementById("museum-name");
+      const museumAddressInput = document.getElementById("museum-address-input");
+      const museumDescriptionInput = document.getElementById("museum-description-input");
+      const museumCityInput = document.getElementById("museum-city");
+      const museumCoordinatesInput = document.getElementById("museum-coordinates");
+      const museumPhotoInput = document.getElementById("museum-photo");
+      const museumLocationMapInput = document.getElementById("museum-location-map");
+      const createMuseumButton = document.getElementById("create-museum");
+      const cancelEditMuseumButton = document.getElementById("cancel-edit-museum");
+      const museumList = document.getElementById("museum-list");
+      const artifactNameInput = document.getElementById("artifact-name");
+      const artifactMuseumInput = document.getElementById("artifact-museum");
+      const adminLocationMap = document.getElementById("admin-location-map");
+      const artifactPointHint = document.getElementById("artifact-point-hint");
+      const artifactDifficultyInput = document.getElementById("artifact-difficulty");
+      const artifactImageInput = document.getElementById("artifact-image");
+      const createArtifactButton = document.getElementById("create-artifact");
+      const artifactList = document.getElementById("artifact-list");
+      const cityPicker = document.getElementById("city-picker");
+      const cityMuseumList = document.getElementById("city-museum-list");
+      const cityTitle = document.getElementById("city-title");
+      const cityMap = document.getElementById("city-map");
+      const mapStatus = document.getElementById("map-status");
+      const locationTitle = document.getElementById("location-title");
+      const locationMapImage = document.getElementById("location-map-image");
+      const locationLandscape = document.getElementById("location-landscape");
+      const locationPanLayer = document.getElementById("location-pan-layer");
+      const locationArtifactsLayer = document.getElementById("location-artifacts-layer");
+      const backToMapButton = document.getElementById("back-to-map");
+      const cloudTransition = document.getElementById("cloud-transition");
+      const coinsHud = document.querySelector(".coins-hud");
+      const coinsValue = document.getElementById("coins-value");
+      const artifactMinigameSelect = document.getElementById("artifact-minigame");
+      const quizSettings = document.getElementById("quiz-settings");
+      const quizQuestions = document.getElementById("quiz-questions");
+      const addQuestionBtn = document.getElementById("add-question");
+      const puzzleBoard = document.getElementById("puzzle-board");
+      const puzzleTitle = document.getElementById("puzzle-title");
+      const puzzleSubtitle = document.getElementById("puzzle-subtitle");
+      const puzzleMoves = document.getElementById("puzzle-moves");
+      const puzzleAttempts = document.getElementById("puzzle-attempts");
+      const puzzleDifficulty = document.getElementById("puzzle-difficulty");
+      const puzzleArtifactImage = document.getElementById("puzzle-artifact-image");
+      const puzzleQuitBtn = document.getElementById("puzzle-quit");
+      const puzzleHintBtn = document.getElementById("puzzle-hint");
+      const puzzleResetBtn = document.getElementById("puzzle-reset");
+      const puzzleResult = document.getElementById("puzzle-result");
+      const puzzleClaimBtn = document.getElementById("puzzle-claim-artifact");
+      const puzzleResultTitle = document.getElementById("puzzle-result-title");
+      const puzzleResultMessage = document.getElementById("puzzle-result-message");
+      let adminUnlocked = false;
+      let authenticated = false;
+
+      // Quiz elements
+      const quizTitle = document.getElementById("quiz-title");
+      const quizSubtitle = document.getElementById("quiz-subtitle");
+      const quizQuitBtn = document.getElementById("quiz-quit");
+      const quizArtifactImage = document.getElementById("quiz-artifact-image");
+      const quizProgressText = document.getElementById("quiz-progress-text");
+      const quizProgressFill = document.getElementById("quiz-progress-fill");
+      const quizQuestionText = document.getElementById("quiz-question-text");
+      const quizAnswers = document.getElementById("quiz-answers");
+      const quizOpenAnswer = document.getElementById("quiz-open-answer");
+      const quizOpenInput = document.getElementById("quiz-open-input");
+      const quizSubmitOpen = document.getElementById("quiz-submit-open");
+      const quizNextBtn = document.getElementById("quiz-next");
+      const quizResult = document.getElementById("quiz-result");
+      const quizResultTitle = document.getElementById("quiz-result-title");
+      const quizResultMessage = document.getElementById("quiz-result-message");
+      const quizClaimBtn = document.getElementById("quiz-claim-artifact");
+      const quizRetryBtn = document.getElementById("quiz-retry");
+
+      let museums = [];
+      let availableCities = [];
+      let activeCity = "Севастополь";
+      let coins = 1039;
+      let mapInstance;
+      let mapMarkers = [];
+      let pendingMuseumFocusId = null;
+      let currentLocationMuseumId = null;
+      let selectedArtifactPoint = null;
+      let adminEditingMuseumId = null;
+      let adminMuseums = [];
+      const geocodeCache = new Map();
+      let adminMapMuseumId = null;
+      let isPanningLocation = false;
+      let locationPanPointerId = null;
+      let locationPanStartX = 0;
+      let locationPanStartY = 0;
+      let locationPanX = 0;
+      let locationPanY = 0;
+
+      // Puzzle game state
+      let puzzleCurrentArtifact = null;
+      let puzzleTiles = [];
+      let puzzleMoveCount = 0;
+      let puzzleAttemptCount = 1;
+      let puzzleImage = null;
+      let puzzleImageWidth = 340;
+      let puzzleImageHeight = 340;
+
+      // Quiz game state
+      let quizCurrentArtifact = null;
+      let quizQuestions = [];
+      let quizCurrentQuestionIndex = 0;
+      let quizCorrectAnswers = 0;
+      let quizSelectedAnswer = null;
+
+      const cityCenters = {
+        Севастополь: [44.61665, 33.52536],
+      };
+
+      const setActiveMuseum = (museum) => {
+        if (!museum) {
+          return;
+        }
+        museumTitle.textContent = museum.name || "Без названия";
+        museumDescription.textContent =
+          museum.description || "Описание появится позже.";
+        const artifactList = museum.artifacts?.length
+          ? museum.artifacts.join(", ")
+          : "Пока нет";
+        museumLoot.textContent = artifactList;
+        museumAddress.textContent = museum.address || "—";
+      };
+
+      const updateCarousel = (activeIndex) => {
+        museumTiles.forEach((tile) => {
+          const tileIndex = Number(tile.dataset.index);
+          const diff = tileIndex - activeIndex;
+          tile.classList.remove("active", "left", "right", "far-left", "far-right");
+          if (diff === 0) {
+            tile.classList.add("active");
+          } else if (diff === -1) {
+            tile.classList.add("left");
+          } else if (diff === 1) {
+            tile.classList.add("right");
+          } else if (diff <= -2) {
+            tile.classList.add("far-left");
+          } else if (diff >= 2) {
+            tile.classList.add("far-right");
+          }
+        });
+        const activeMuseum = museums[activeIndex];
+        if (activeMuseum) {
+          setActiveMuseum(activeMuseum);
+        }
+      };
+
+      const renderMuseums = (items) => {
+        museums = items;
+        if (!carousel) {
+          return;
+        }
+        carousel.innerHTML = "";
+        if (!items.length) {
+          const empty = document.createElement("div");
+          empty.className = "museum-empty";
+          empty.textContent = "Музеи появятся после добавления в админ-панели.";
+          carousel.appendChild(empty);
+          renderHomeMuseumCards([]);
+          return;
+        }
+        items.forEach((museum, index) => {
+          const tile = document.createElement("button");
+          tile.type = "button";
+          tile.className = "museum-tile";
+          tile.dataset.index = String(index);
+          tile.innerHTML = `
+            <img
+              class="museum-photo"
+              src="/static/${museum.image || "source/zaglushka.png"}"
+              alt="Фото музея"
+              onerror="this.src='{{ url_for('static', filename='source/zaglushka.png') }}'"
+            />
+            <span>${museum.name || "Без названия"}</span>
+          `;
+          tile.addEventListener("click", () => {
+            updateCarousel(index);
+          });
+          carousel.appendChild(tile);
+        });
+        museumTiles = Array.from(carousel.querySelectorAll(".museum-tile"));
+        updateCarousel(0);
+        renderHomeMuseumCards(items);
+      };
+
+
+      const renderHomeMuseumCards = (items) => {
+        if (!homeMuseumList) {
+          return;
+        }
+        homeMuseumList.innerHTML = items.length
+          ? items
+              .map(
+                (museum) =>
+                  `<div class="card home-museum-card"><div><strong>${museum.name || "Без названия"}</strong><p>${museum.address || "Адрес не указан"}</p></div><button type="button" class="ghost museum-map-button" data-museum-id="${museum.id}">Перейти к карте музея</button></div>`
+              )
+              .join("")
+          : "";
+      };
+
+      const openMuseumOnMap = async (museumId) => {
+        const museum = museums.find((item) => Number(item.id) === Number(museumId));
+        if (!museum) {
+          showToast("Музей не найден.");
+          return;
+        }
+        if (museum.city) {
+          activeCity = museum.city;
+          renderCityPicker(availableCities, activeCity);
+          renderCityMuseums(activeCity);
+        }
+        pendingMuseumFocusId = museum.id;
+        showScreen("map");
+        await renderCityMap(activeCity);
+      };
+
+      const normalizeMapPoint = (x, y) => ({
+        x: Math.min(100, Math.max(0, Number(x))),
+        y: Math.min(100, Math.max(0, Number(y))),
+      });
+
+      const renderLocationArtifacts = (museumId) => {
+        if (!locationArtifactsLayer) {
+          return;
+        }
+        const museumArtifacts = museums
+          .flatMap((museum) => museum.id === museumId ? museum.artifacts || [] : [])
+          .map((item) => (typeof item === "object" ? item : null))
+          .filter(Boolean);
+        locationArtifactsLayer.innerHTML = museumArtifacts
+          .filter((artifact) => artifact.map_x != null && artifact.map_y != null)
+          .map(
+            (artifact) =>
+              `<button type="button" class="location-artifact" data-artifact-id="${artifact.id}" style="left:${artifact.map_x}%;top:${artifact.map_y}%;" title="${artifact.name || "Артефакт"}" aria-label="${artifact.name || "Артефакт"}"><span class="artifact-dot" aria-hidden="true"></span></button>`
+          )
+          .join("");
+        
+        // Add click handlers
+        locationArtifactsLayer.querySelectorAll('.location-artifact').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const artifactId = btn.dataset.artifactId;
+            const artifact = museumArtifacts.find(a => String(a.id) === artifactId);
+            if (artifact) {
+              startArtifactMinigame(artifact);
+            }
+          });
+        });
+      };
+
+
+      const startArtifactMinigame = (artifact) => {
+        if (artifact.minigame === 'puzzle' || !artifact.minigame) {
+          initPuzzleGame(artifact);
+          showScreen("puzzle-minigame");
+        } else if (artifact.minigame === 'quiz') {
+          initQuizGame(artifact);
+          showScreen("quiz-minigame");
+        }
+      };
+
+      const getLocationPanBounds = () => {
+        if (!locationLandscape || !locationPanLayer) {
+          return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+        }
+        const viewportWidth = locationLandscape.clientWidth;
+        const viewportHeight = locationLandscape.clientHeight;
+        const layerWidth = locationPanLayer.offsetWidth;
+        const layerHeight = locationPanLayer.offsetHeight;
+        return {
+          minX: Math.min(0, viewportWidth - layerWidth),
+          maxX: 0,
+          minY: Math.min(0, viewportHeight - layerHeight),
+          maxY: 0,
+        };
+      };
+
+      const clampLocationPan = (x, y) => {
+        const bounds = getLocationPanBounds();
+        return {
+          x: Math.min(bounds.maxX, Math.max(bounds.minX, x)),
+          y: Math.min(bounds.maxY, Math.max(bounds.minY, y)),
+        };
+      };
+
+      const applyLocationPan = (x, y, animate = false) => {
+        if (!locationPanLayer) {
+          return;
+        }
+        locationPanLayer.style.transition = animate ? "transform 0.35s ease" : "none";
+        locationPanLayer.style.transform = `translate(${x}px, ${y}px)`;
+      };
+
+      const setLocationFog = (strength) => {
+        if (!locationLandscape) {
+          return;
+        }
+        locationLandscape.style.setProperty("--location-fog-strength", String(strength));
+      };
+
+      const updateLocationFog = (x, y) => {
+        if (!locationLandscape || !locationPanLayer) {
+          setLocationFog(0.68);
+          return;
+        }
+        const bounds = getLocationPanBounds();
+        const overscrollX = Math.max(bounds.minX - x, 0, x - bounds.maxX);
+        const overscrollY = Math.max(bounds.minY - y, 0, y - bounds.maxY);
+        const overscroll = Math.max(overscrollX, overscrollY);
+        const maxOverscroll = 90;
+        const factor = Math.min(1, overscroll / maxOverscroll);
+        const baseFog = 0.5;
+        const extraFog = 0.4;
+        setLocationFog(baseFog + extraFog * factor);
+      };
+
+      const resetLocationPan = (animate = false) => {
+        if (!locationLandscape || !locationPanLayer) {
+          return;
+        }
+        const bounds = getLocationPanBounds();
+        locationPanX = bounds.minX / 2;
+        locationPanY = bounds.minY / 2;
+        applyLocationPan(locationPanX, locationPanY, animate);
+        updateLocationFog(locationPanX, locationPanY);
+      };
+
+      const openMuseumLocation = (museumId) => {
+        const museum = museums.find((item) => Number(item.id) === Number(museumId));
+        if (!museum) {
+          showToast("Музей не найден.");
+          return;
+        }
+        currentLocationMuseumId = museum.id;
+        if (locationTitle) {
+          locationTitle.textContent = `Локация: ${museum.name || "Музей"}`;
+        }
+        if (locationMapImage) {
+          locationMapImage.src = museum.map_image
+            ? `/static/${museum.map_image}`
+            : `/static/source/maps/${museum.id}.png`;
+          locationMapImage.onerror = () => {
+            locationMapImage.src = "{{ url_for('static', filename='source/zaglushka.png') }}";
+          };
+        }
+        renderLocationArtifacts(museum.id);
+        showScreen("museum-location");
+        resetLocationPan();
+        if (cloudTransition) {
+          cloudTransition.classList.remove("animate");
+          void cloudTransition.offsetWidth;
+          cloudTransition.classList.add("animate");
+        }
+      };
+
+      const renderAdminMuseumOptions = (items) => {
+        if (!artifactMuseumInput) {
+          return;
+        }
+        artifactMuseumInput.innerHTML = items
+          .map((museum) => `<option value="${museum.id}">${museum.id}. ${museum.name}</option>`)
+          .join("");
+        if (!adminMapMuseumId && items.length) {
+          adminMapMuseumId = items[0].id;
+        }
+        if (adminMapMuseumId) {
+          artifactMuseumInput.value = String(adminMapMuseumId);
+        }
+      };
+
+      const renderAdminLocationMap = () => {
+        if (!adminLocationMap) {
+          return;
+        }
+        const museum = museums.find((item) => Number(item.id) === Number(adminMapMuseumId));
+        if (!museum) {
+          adminLocationMap.innerHTML = "<div class=\"admin-map-empty\">Сначала создайте музей.</div>";
+          return;
+        }
+        const mapSrc = museum.map_image
+          ? `/static/${museum.map_image}`
+          : `/static/source/maps/${museum.id}.png`;
+        const pointHtml = selectedArtifactPoint
+          ? `<span class="admin-mark-preview" style="left:${selectedArtifactPoint.x}%;top:${selectedArtifactPoint.y}%;" aria-hidden="true"></span>`
+          : "";
+        adminLocationMap.innerHTML = `<div class="admin-location-map-inner"><img src="${mapSrc}" alt="Карта музея" onerror="this.src='{{ url_for('static', filename='source/zaglushka.png') }}'" />${pointHtml}</div>`;
+      };
+
+      const renderCityMuseums = (city) => {
+        if (!cityMuseumList || !cityTitle) {
+          return;
+        }
+        cityTitle.textContent = city;
+        const list = museums.filter((museum) => museum.city === city);
+        cityMuseumList.innerHTML = list.length
+          ? list
+              .map(
+                (museum) =>
+                  `<div class="city-museum-card"><strong>${museum.name}</strong><span>${museum.address}</span></div>`
+              )
+              .join("")
+          : "<div class=\"city-museum-empty\">Пока нет музеев в этом городе.</div>";
+      };
+
+      const updateMapStatus = (message) => {
+        if (mapStatus) {
+          mapStatus.textContent = message;
+        }
+      };
+
+      const getCityCenter = (city) => cityCenters[city] || [44.61665, 33.52536];
+
+      const initMap = (city) => {
+        if (!cityMap || mapInstance || !window.L) {
+          return;
+        }
+        mapInstance = L.map(cityMap, { zoomControl: true }).setView(getCityCenter(city), 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }).addTo(mapInstance);
+      };
+
+      const clearMapMarkers = () => {
+        if (!mapInstance) {
+          return;
+        }
+        mapMarkers.forEach((item) => item.marker.remove());
+        mapMarkers = [];
+      };
+
+      const geocodeMuseumAddress = async (museum, city) => {
+        const address = (museum.address || "").trim();
+        if (!address) {
+          return null;
+        }
+        const key = `${city}:${address}`;
+        if (geocodeCache.has(key)) {
+          return geocodeCache.get(key);
+        }
+        const query = `${address}, ${city}`;
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`
+          );
+          if (!response.ok) {
+            geocodeCache.set(key, null);
+            return null;
+          }
+          const data = await response.json();
+          const point = data[0]
+            ? [Number.parseFloat(data[0].lat), Number.parseFloat(data[0].lon)]
+            : null;
+          geocodeCache.set(key, point);
+          return point;
+        } catch (error) {
+          geocodeCache.set(key, null);
+          return null;
+        }
+      };
+
+      const renderCityMap = async (city) => {
+        if (!cityMap || !mapStatus) {
+          return;
+        }
+        if (!window.L) {
+          updateMapStatus("Не удалось загрузить библиотеку карты.");
+          return;
+        }
+        initMap(city);
+        if (!mapInstance) {
+          return;
+        }
+        clearMapMarkers();
+        const cityMuseums = museums.filter((museum) => museum.city === city);
+        if (!cityMuseums.length) {
+          mapInstance.setView(getCityCenter(city), 12);
+          updateMapStatus("В этом городе пока нет музеев с адресами для отображения.");
+          return;
+        }
+        updateMapStatus("Ищем музеи по адресам и расставляем метки...");
+        const bounds = [];
+        let markerCount = 0;
+        for (const museum of cityMuseums) {
+          const hasManualPoint =
+            Number.isFinite(Number(museum.latitude)) &&
+            Number.isFinite(Number(museum.longitude));
+          const point = hasManualPoint
+            ? [Number(museum.latitude), Number(museum.longitude)]
+            : await geocodeMuseumAddress(museum, city);
+          if (!point) {
+            continue;
+          }
+          const marker = L.marker(point).addTo(mapInstance);
+          const loot = museum.artifacts?.length
+            ? museum.artifacts.join(", ")
+            : "Пока нет";
+          const imageSrc = museum.image
+            ? `/static/${museum.image}`
+            : "{{ url_for('static', filename='source/zaglushka.png') }}";
+          marker.bindPopup(
+            `<div class="map-popup"><h3>${museum.name || "Музей"}</h3><img src="${imageSrc}" alt="Фото музея" onerror="this.src='{{ url_for('static', filename='source/zaglushka.png') }}'" /><p>${museum.description || "Описание появится позже."}</p><div class="map-popup-meta"><span><strong>Лут:</strong> ${loot}</span><span><strong>Адрес:</strong> ${museum.address || "Адрес не указан"}</span></div><button type="button" class="primary popup-enter-btn" onclick="window.enterMuseumLocation(${museum.id})">Войти в музей</button></div>`
+          );
+          mapMarkers.push({ museumId: museum.id, marker });
+          bounds.push(point);
+          markerCount += 1;
+        }
+        if (pendingMuseumFocusId) {
+          const focusMarker = mapMarkers.find((item) => Number(item.museumId) === Number(pendingMuseumFocusId));
+          if (focusMarker) {
+            mapInstance.setView(focusMarker.marker.getLatLng(), 16);
+            focusMarker.marker.openPopup();
+          }
+          pendingMuseumFocusId = null;
+        }
+
+        if (!markerCount) {
+          mapInstance.setView(getCityCenter(city), 12);
+          updateMapStatus("Не удалось определить координаты по указанным адресам.");
+          return;
+        }
+        mapInstance.fitBounds(bounds, { padding: [22, 22] });
+        updateMapStatus(`Показано меток: ${markerCount}. Нажмите на метку, чтобы открыть музей.`);
+      };
+
+      const normalizeCity = (city) => city.trim();
+
+      const getCitiesFromMuseums = (items) => {
+        const citySet = new Set();
+        items.forEach((museum) => {
+          if (museum.city) {
+            citySet.add(normalizeCity(museum.city));
+          }
+        });
+        const list = Array.from(citySet).filter(Boolean);
+        list.sort((a, b) => a.localeCompare(b, "ru"));
+        return list;
+      };
+
+      const renderCityPicker = (cities, currentCity) => {
+        if (!cityPicker) {
+          return;
+        }
+        cityPicker.innerHTML = "";
+        if (!cities.length) {
+          const empty = document.createElement("div");
+          empty.className = "city-empty";
+          empty.textContent = "Города появятся после добавления музеев.";
+          cityPicker.appendChild(empty);
+          return;
+        }
+        const grouped = cities.reduce((acc, city) => {
+          const letter = city[0]?.toUpperCase() || "#";
+          acc[letter] = acc[letter] || [];
+          acc[letter].push(city);
+          return acc;
+        }, {});
+        Object.keys(grouped)
+          .sort((a, b) => a.localeCompare(b, "ru"))
+          .forEach((letter) => {
+            const column = document.createElement("div");
+            column.className = "city-column";
+            const title = document.createElement("span");
+            title.className = "city-letter";
+            title.textContent = letter;
+            column.appendChild(title);
+            grouped[letter].forEach((city) => {
+              const button = document.createElement("button");
+              button.type = "button";
+              button.className = "city-item";
+              if (city === currentCity) {
+                button.classList.add("active");
+              }
+              button.dataset.city = city;
+              button.textContent = city;
+              column.appendChild(button);
+            });
+            cityPicker.appendChild(column);
+          });
+      };
+
+
+      // ===== Puzzle Game Functions =====
+      const initPuzzleGame = (artifact) => {
+        puzzleCurrentArtifact = artifact;
+        puzzleMoveCount = 0;
+        puzzleAttemptCount = 1;
+        puzzleTiles = [];
+        
+        if (puzzleTitle) {
+          puzzleTitle.textContent = `Артефакт: ${artifact.name || "Неизвестный"}`;
+        }
+        if (puzzleSubtitle) {
+          puzzleSubtitle.textContent = `Сложность: ${artifact.difficulty || "Средняя"}`;
+        }
+        if (puzzleDifficulty) {
+          puzzleDifficulty.textContent = artifact.difficulty || "Medium";
+        }
+        
+        // Load image
+        puzzleImage = new Image();
+        puzzleImage.onload = () => {
+          createPuzzleTiles();
+          drawPuzzleBoard();
+        };
+        puzzleImage.onerror = () => {
+          showToast("Не удалось загрузить изображение артефакта.");
+        };
+        
+        const imageSrc = artifact.image 
+          ? `/static/${artifact.image}`
+          : `{{ url_for('static', filename='source/zaglushka.png') }}`;
+        puzzleImage.src = imageSrc;
+        
+        if (puzzleArtifactImage) {
+          puzzleArtifactImage.src = imageSrc;
+        }
+        
+        updatePuzzleUI();
+      };
+
+      const createPuzzleTiles = () => {
+        puzzleTiles = [];
+        const tileSize = 4; // 4x4 grid
+        const tileSizePixels = puzzleImageWidth / tileSize;
+        
+        // Create 15 tiles (last one is empty)
+        for (let row = 0; row < tileSize; row++) {
+          for (let col = 0; col < tileSize; col++) {
+            const index = row * tileSize + col;
+            if (index < tileSize * tileSize - 1) {
+              puzzleTiles.push({
+                index: index,
+                correctIndex: index,
+                row: row,
+                col: col,
+              });
+            }
+          }
+        }
+        
+        // Shuffle tiles
+        for (let i = puzzleTiles.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [puzzleTiles[i], puzzleTiles[j]] = [puzzleTiles[j], puzzleTiles[i]];
+        }
+      };
+
+      const drawPuzzleBoard = () => {
+        if (!puzzleBoard || !puzzleImage) {
+          return;
+        }
+        
+        puzzleBoard.innerHTML = '';
+        const tileSize = 4;
+        const tileSizePixels = puzzleImageWidth / tileSize;
+        
+        // Draw tiles
+        puzzleTiles.forEach((tile) => {
+          const tileEl = document.createElement('div');
+          tileEl.className = 'puzzle-tile';
+          tileEl.dataset.index = tile.index;
+          
+          const sourceX = (tile.correctIndex % tileSize) * tileSizePixels;
+          const sourceY = Math.floor(tile.correctIndex / tileSize) * tileSizePixels;
+          
+          tileEl.style.backgroundImage = `url(${puzzleImage.src})`;
+          tileEl.style.backgroundPosition = `-${sourceX}px -${sourceY}px`;
+          tileEl.style.backgroundSize = `${puzzleImageWidth}px ${puzzleImageHeight}px`;
+          
+          tileEl.addEventListener('click', () => movePuzzleTile(tile.index));
+          puzzleBoard.appendChild(tileEl);
+        });
+        
+        // Add empty tile
+        const emptyTile = document.createElement('div');
+        emptyTile.className = 'puzzle-tile empty';
+        emptyTile.dataset.index = 'empty';
+        puzzleBoard.appendChild(emptyTile);
+      };
+
+      const movePuzzleTile = (tileIndex) => {
+        const tileSize = 4;
+        const tile = puzzleTiles.find(t => t.index === tileIndex);
+        if (!tile) return;
+        
+        const emptyIndex = puzzleTiles.length;
+        const tilePos = tile.row * tileSize + tile.col;
+        
+        // Check if adjacent to empty space
+        const emptyRow = Math.floor(emptyIndex / tileSize);
+        const emptyCol = emptyIndex % tileSize;
+        
+        const isAdjacent = 
+          (tile.row === emptyRow && Math.abs(tile.col - emptyCol) === 1) ||
+          (tile.col === emptyCol && Math.abs(tile.row - emptyRow) === 1);
+        
+        if (isAdjacent) {
+          // Swap positions
+          const temp = tile.row * tileSize + tile.col;
+          tile.row = emptyRow;
+          tile.col = emptyCol;
+          
+          puzzleMoveCount++;
+          updatePuzzleUI();
+          drawPuzzleBoard();
+          
+          // Check if puzzle solved
+          if (checkPuzzleWin()) {
+            showPuzzleWinScreen();
+          }
+        }
+      };
+
+      const checkPuzzleWin = () => {
+        for (let i = 0; i < puzzleTiles.length; i++) {
+          if (puzzleTiles[i].correctIndex !== i) {
+            return false;
+          }
+        }
+        return true;
+      };
+
+      const updatePuzzleUI = () => {
+        if (puzzleMoves) puzzleMoves.textContent = puzzleMoveCount;
+        if (puzzleAttempts) puzzleAttempts.textContent = puzzleAttemptCount;
+      };
+
+      // ===== Quiz Game Functions =====
+      const initQuizGame = (artifact) => {
+        quizCurrentArtifact = artifact;
+        quizQuestions = artifact.quiz_questions || [];
+        quizCurrentQuestionIndex = 0;
+        quizCorrectAnswers = 0;
+        quizSelectedAnswer = null;
+
+        if (quizTitle) {
+          quizTitle.textContent = `Артефакт: ${artifact.name || "Неизвестный"}`;
+        }
+        if (quizSubtitle) {
+          quizSubtitle.textContent = `Сложность: ${artifact.difficulty || "Средняя"}`;
+        }
+
+        const imageSrc = artifact.image
+          ? `/static/${artifact.image}`
+          : `{{ url_for('static', filename='source/zaglushka.png') }}`;
+        if (quizArtifactImage) {
+          quizArtifactImage.src = imageSrc;
+        }
+
+        if (quizResult) quizResult.classList.add('hidden');
+        showQuizQuestion();
+      };
+
+      const showQuizQuestion = () => {
+        if (quizCurrentQuestionIndex >= quizQuestions.length) {
+          showQuizResult();
+          return;
+        }
+
+        const question = quizQuestions[quizCurrentQuestionIndex];
+        if (quizQuestionText) {
+          quizQuestionText.textContent = question.question;
+        }
+        if (quizProgressText) {
+          quizProgressText.textContent = `Вопрос ${quizCurrentQuestionIndex + 1} из ${quizQuestions.length}`;
+        }
+        if (quizProgressFill) {
+          const progress = ((quizCurrentQuestionIndex + 1) / quizQuestions.length) * 100;
+          quizProgressFill.style.width = `${progress}%`;
+        }
+
+        if (question.type === 'test') {
+          quizAnswers.classList.remove('hidden');
+          quizOpenAnswer.classList.add('hidden');
+          const answers = [question.correct_answer, ...question.wrong_answers];
+          // Shuffle answers
+          for (let i = answers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [answers[i], answers[j]] = [answers[j], answers[i]];
+          }
+          quizAnswers.innerHTML = answers.map((answer, index) => 
+            `<button type="button" class="quiz-answer-btn" data-answer="${answer}">${answer}</button>`
+          ).join('');
+        } else {
+          quizAnswers.classList.add('hidden');
+          quizOpenAnswer.classList.remove('hidden');
+          if (quizOpenInput) quizOpenInput.value = '';
+        }
+      };
+
+      const checkQuizAnswer = (selectedAnswer) => {
+        const question = quizQuestions[quizCurrentQuestionIndex];
+        let correct = false;
+        if (question.type === 'test') {
+          correct = selectedAnswer === question.correct_answer;
+        } else {
+          correct = selectedAnswer.toLowerCase().trim() === question.answer.toLowerCase().trim();
+        }
+        if (correct) quizCorrectAnswers++;
+        quizCurrentQuestionIndex++;
+        showQuizQuestion();
+      };
+
+      const showQuizResult = () => {
+        if (quizResult) quizResult.classList.remove('hidden');
+        if (quizResultMessage) {
+          quizResultMessage.textContent = `Вы ответили правильно на ${quizCorrectAnswers} из ${quizQuestions.length} вопросов.`;
+        }
+        if (quizCorrectAnswers >= 8) {
+          if (quizResultTitle) quizResultTitle.textContent = 'Поздравляем!';
+          if (quizClaimBtn) quizClaimBtn.classList.remove('hidden');
+          if (quizRetryBtn) quizRetryBtn.classList.add('hidden');
+        } else {
+          if (quizResultTitle) quizResultTitle.textContent = 'Попробуйте снова';
+          if (quizClaimBtn) quizClaimBtn.classList.add('hidden');
+          if (quizRetryBtn) quizRetryBtn.classList.remove('hidden');
+        }
+      };
+
+      const claimQuizArtifact = async () => {
+        if (!quizCurrentArtifact) return;
+        try {
+          const response = await fetch('/api/claim-artifact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ artifact_id: quizCurrentArtifact.id, nickname: 'Nol' })  // TODO: use session
+          });
+          if (response.ok) {
+            showToast('Артефакт добавлен в инвентарь!');
+            await loadUserProfile();
+            showScreen('museum-location');
+          } else {
+            showToast('Ошибка получения артефакта.');
+          }
+        } catch (error) {
+          showToast('Ошибка сети.');
+        }
+      };
+
+      const resetPuzzle = () => {
+        if (puzzleCurrentArtifact) {
+          puzzleAttemptCount++;
+          initPuzzleGame(puzzleCurrentArtifact);
+        }
+      };
+
+      const showPuzzleWinScreen = () => {
+        if (!puzzleResult) return;
+        
+        puzzleResult.classList.remove('hidden');
+        if (puzzleResultTitle) {
+          puzzleResultTitle.textContent = '🎉 Поздравляем!';
+        }
+        if (puzzleResultMessage) {
+          puzzleResultMessage.textContent = `Вы собрали артефакт за ${puzzleMoveCount} ходов!`;
+        }
+      };
+
+      const claimPuzzleArtifact = async () => {
+        if (!puzzleCurrentArtifact) {
+          showToast("Артефакт не найден.");
+          return;
+        }
+        
+        // Here you would add the artifact to player inventory
+        showToast(`Артефакт "${puzzleCurrentArtifact.name}" добавлен в инвентарь!`);
+        showScreen("museum-location");
+        puzzleResult?.classList.add('hidden');
+      };
+
+      const setCoins = (value) => {
+        coins = Math.max(0, Number(value) || 0);
+        if (coinsValue) {
+          coinsValue.textContent = coins.toLocaleString("ru-RU");
+        }
+      };
+
+
+      const resetMessages = () => {
+        messageBoxes.forEach((box) => {
+          box.textContent = "";
+          box.classList.remove("success", "error");
+        });
+      };
+
+      const showToast = (message) => {
+        if (!toast) {
+          return;
+        }
+        toast.textContent = message;
+        toast.classList.add("visible");
+        setTimeout(() => {
+          toast.classList.remove("visible");
+        }, 3000);
+      };
+
+      const applyProfile = (data = {}, nickname = "", avatar = null) => {
+        if (profileName && nickname) {
+          profileName.textContent = nickname;
+        }
+        if (profileMuseums) {
+          profileMuseums.textContent = data.museums_completed ?? 0;
+        }
+        if (profileArtifacts) {
+          profileArtifacts.textContent = data.artifacts_found ?? 0;
+        }
+        if (profileRating) {
+          profileRating.textContent = data.rating ?? 0;
+        }
+        if (profileAvatar) {
+          if (avatar) {
+            profileAvatar.src = `/static/${avatar}`;
+          } else if (data.avatar) {
+            profileAvatar.src = `/static/${data.avatar}`;
+          } else {
+            profileAvatar.src = "{{ url_for('static', filename='source/zaglushka.png') }}";
+          }
+        }
+      };
+
+      const renderInventory = (container, items, typeLabel) => {
+        if (!container) {
+          return;
+        }
+        container.innerHTML = "";
+        if (!items || items.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "inventory-empty";
+          empty.textContent = "Пока пусто.";
+          container.appendChild(empty);
+          return;
+        }
+        items.forEach((item) => {
+          const card = document.createElement("button");
+          card.type = "button";
+          card.className = "item-card";
+          card.innerHTML = `
+            <div class="item-image">${item.short || "IT"}</div>
+            <span>${item.name}</span>
+            <div class="item-details">
+              <div class="details-image">${item.short || "IT"}</div>
+              <h3>${item.name}</h3>
+              <p>Тип: ${item.type || typeLabel}</p>
+              <p>Локация: ${item.location || "—"}</p>
+              <p>Ценность: ${item.value || "—"}</p>
+            </div>
+          `;
+          card.addEventListener("click", () => {
+            card.classList.toggle("expanded");
+          });
+          container.appendChild(card);
+        });
+      };
+
+      const applyInventory = (inventory = {}) => {
+        renderInventory(inventorySkins, inventory.skins || [], "Скин");
+        renderInventory(inventoryItems, inventory.items || [], "Предмет");
+        renderInventory(inventoryRewards, inventory.achievements || [], "Награда");
+      };
+
+      const refreshAdminData = async () => {
+        const response = await fetch("/api/admin/data");
+        if (!response.ok) {
+          showToast("Не удалось загрузить данные.");
+          return;
+        }
+        const data = await response.json();
+        adminMuseums = data.museums || [];
+        if (museumList) {
+          const artifactMap = data.artifacts.reduce((acc, artifact) => {
+            acc[artifact.museum_id] = acc[artifact.museum_id] || [];
+            acc[artifact.museum_id].push(artifact.name);
+            return acc;
+          }, {});
+          museumList.innerHTML = data.museums
+            .map((museum) => {
+              const artifacts = artifactMap[museum.id] || [];
+              const list = artifacts.length ? artifacts.join(", ") : "Пока нет";
+              const coordLine =
+                museum.latitude != null && museum.longitude != null
+                  ? `<br />Координаты: ${museum.latitude}, ${museum.longitude}`
+                  : "";
+              return `<div class="admin-museum-row"><div><strong>${museum.id}.</strong> ${museum.name} — ${museum.address}${coordLine}<br />Артефакты: ${list}</div><div class="admin-row-actions"><button type="button" class="ghost edit-museum" data-id="${museum.id}">Редактировать</button><button type="button" class="ghost danger delete-museum" data-id="${museum.id}">Удалить</button></div></div>`;
+            })
+            .join("");
+        }
+        if (artifactList) {
+          artifactList.innerHTML = data.artifacts
+            .map(
+              (artifact) =>
+                `<div><strong>${artifact.id}.</strong> ${artifact.name} — музей ${artifact.museum_id}${artifact.map_x != null && artifact.map_y != null ? ` (${artifact.map_x.toFixed(1)}%, ${artifact.map_y.toFixed(1)}%)` : ""}</div>`
+            )
+            .join("");
+        }
+        renderAdminMuseumOptions(adminMuseums);
+        renderAdminLocationMap();
+      };
+
+      const coinsVisibleScreens = new Set(["home", "inventory", "shop", "store"]);
+
+      const showScreen = (id) => {
+        if (!authenticated && !["login", "register"].includes(id)) {
+          return;
+        }
+        if (id === "admin" && !adminUnlocked) {
+          showToast("Введите пароль администратора.");
+          return;
+        }
+        screens.forEach((screen) => {
+          screen.classList.toggle("active", screen.id === id);
+        });
+        navButtons.forEach((button) => {
+          button.classList.toggle("active", button.dataset.screen === id);
+        });
+        bottomNav.classList.toggle(
+          "hidden",
+          ["login", "register"].includes(id)
+        );
+        if (coinsHud) {
+          coinsHud.classList.toggle("hidden", !coinsVisibleScreens.has(id));
+        }
+        if (id === "map" && mapInstance) {
+          setTimeout(() => mapInstance.invalidateSize(), 150);
+        }
+        if (appRoot) {
+          appRoot.classList.toggle("landscape-mode", id === "museum-location");
+        }
+        if (["login", "register"].includes(id)) {
+          resetMessages();
+        }
+      };
+
+      if (selectedMuseumMapButton) {
+        selectedMuseumMapButton.addEventListener("click", async () => {
+          const activeTile = carousel ? carousel.querySelector(".museum-tile.active") : null;
+          const index = activeTile ? Number(activeTile.dataset.index) : 0;
+          const museum = museums[index];
+          if (!museum) {
+            showToast("Сначала выберите музей.");
+            return;
+          }
+          await openMuseumOnMap(museum.id);
+        });
+      }
+
+      if (openMapButton) {
+        openMapButton.addEventListener("click", () => {
+          showScreen("map");
+          renderCityMap(activeCity);
+        });
+      }
+
+      if (homeMuseumList) {
+        homeMuseumList.addEventListener("click", async (event) => {
+          const button = event.target.closest(".museum-map-button");
+          if (!button) {
+            return;
+          }
+          await openMuseumOnMap(button.dataset.museumId);
+        });
+      }
+
+      navButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          showScreen(button.dataset.screen);
+        });
+      });
+
+      authNavButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          showScreen(button.dataset.screen);
+        });
+      });
+
+      authButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const form = button.closest("form");
+          if (!form) {
+            return;
+          }
+          const formData = new FormData(form);
+          if (button.dataset.auth === "register") {
+            const nickname = formData.get("nickname");
+            const email = formData.get("email");
+            const password = formData.get("password");
+            const confirm = formData.get("confirm");
+            if (password !== confirm) {
+              showToast("Пароли не совпадают.");
+              return;
+            }
+            const response = await fetch("/api/register", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ nickname, email, password }),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              showToast(result.error || "Ошибка регистрации.");
+              return;
+            }
+            applyProfile(result.profile, result.nickname);
+            applyInventory(result.inventory || {});
+          }
+          if (button.dataset.auth === "login") {
+            const identity = formData.get("identity");
+            const password = formData.get("password");
+            const response = await fetch("/api/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ identity, password }),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              showToast(result.error || "Ошибка входа.");
+              return;
+            }
+            applyProfile(result.profile, result.nickname);
+            applyInventory(result.inventory || {});
+          }
+          authenticated = true;
+          bottomNav.classList.remove("locked");
+          showScreen("home");
+        });
+      });
+
+      if (adminLogin) {
+        adminLogin.addEventListener("click", async () => {
+          const password = adminPassword ? adminPassword.value : "";
+          const response = await fetch("/api/admin/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            showToast(result.error || "Ошибка входа в админ-панель.");
+            return;
+          }
+          adminUnlocked = true;
+          await refreshAdminData();
+          showScreen("admin");
+        });
+      }
+
+      if (createMuseumButton) {
+        createMuseumButton.addEventListener("click", async () => {
+          const name = museumNameInput ? museumNameInput.value : "";
+          const description = museumDescriptionInput ? museumDescriptionInput.value : "";
+          const address = museumAddressInput ? museumAddressInput.value : "";
+          const city = museumCityInput ? museumCityInput.value : "";
+          const coordinates = museumCoordinatesInput
+            ? museumCoordinatesInput.value
+            : "";
+
+          const formData = new FormData();
+          formData.append("name", name);
+          formData.append("description", description);
+          formData.append("address", address);
+          formData.append("city", city);
+          formData.append("coordinates", coordinates);
+
+          const photoFile = museumPhotoInput ? museumPhotoInput.files[0] : null;
+          const mapFile = museumLocationMapInput ? museumLocationMapInput.files[0] : null;
+          if (photoFile) {
+            formData.append("photo", photoFile);
+          }
+          if (mapFile) {
+            formData.append("location_map", mapFile);
+          }
+
+          if (adminEditingMuseumId) {
+            const response = await fetch(`/api/admin/museums/${adminEditingMuseumId}`, {
+              method: "PUT",
+              body: formData,
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              showToast(result.error || "Ошибка обновления музея.");
+              return;
+            }
+            showToast("Музей обновлён.");
+            adminEditingMuseumId = null;
+            createMuseumButton.textContent = "Сохранить музей";
+          } else {
+            const response = await fetch("/api/admin/museums", {
+              method: "POST",
+              body: formData,
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              showToast(result.error || "Ошибка сохранения музея.");
+              return;
+            }
+          }
+
+          await refreshAdminData();
+          if (museumNameInput) museumNameInput.value = "";
+          if (museumDescriptionInput) museumDescriptionInput.value = "";
+          if (museumAddressInput) museumAddressInput.value = "";
+          if (museumCityInput) museumCityInput.value = "";
+          if (museumCoordinatesInput) museumCoordinatesInput.value = "";
+          if (museumPhotoInput) museumPhotoInput.value = "";
+          if (museumLocationMapInput) museumLocationMapInput.value = "";
+          await loadMuseums();
+        });
+      }
+
+      if (cancelEditMuseumButton) {
+        cancelEditMuseumButton.addEventListener("click", () => {
+          adminEditingMuseumId = null;
+          if (createMuseumButton) createMuseumButton.textContent = "Сохранить музей";
+          if (museumNameInput) museumNameInput.value = "";
+          if (museumDescriptionInput) museumDescriptionInput.value = "";
+          if (museumAddressInput) museumAddressInput.value = "";
+          if (museumCityInput) museumCityInput.value = "";
+          if (museumCoordinatesInput) museumCoordinatesInput.value = "";
+          if (museumPhotoInput) museumPhotoInput.value = "";
+          if (museumLocationMapInput) museumLocationMapInput.value = "";
+        });
+      }
+
+      // Quiz settings handlers
+      if (artifactMinigameSelect) {
+        artifactMinigameSelect.addEventListener("change", () => {
+          if (quizSettings) {
+            quizSettings.style.display = artifactMinigameSelect.value === "quiz" ? "block" : "none";
+          }
+        });
+      }
+
+      if (addQuestionBtn) {
+        addQuestionBtn.addEventListener("click", () => {
+          const questionCount = quizQuestions.querySelectorAll(".quiz-question").length;
+          if (questionCount >= 10) {
+            showToast("Максимум 10 вопросов.");
+            return;
+          }
+          const newQuestion = document.createElement("div");
+          newQuestion.className = "quiz-question";
+          newQuestion.dataset.index = questionCount;
+          newQuestion.innerHTML = `
+            <label>Вопрос ${questionCount + 1}</label>
+            <select class="question-type">
+              <option value="test">Тестовый</option>
+              <option value="open">Открытый</option>
+            </select>
+            <input type="text" class="question-text" placeholder="Текст вопроса" />
+            <div class="test-options" style="display: block;">
+              <input type="text" class="correct-answer" placeholder="Правильный ответ" />
+              <input type="text" class="wrong-answer1" placeholder="Неправильный ответ 1" />
+              <input type="text" class="wrong-answer2" placeholder="Неправильный ответ 2" />
+              <input type="text" class="wrong-answer3" placeholder="Неправильный ответ 3" />
+            </div>
+            <div class="open-options" style="display: none;">
+              <input type="text" class="open-answer" placeholder="Ответ на вопрос" />
+            </div>
+            <button type="button" class="remove-question">Удалить</button>
+          `;
+          quizQuestions.appendChild(newQuestion);
+          newQuestion.querySelector(".question-type").addEventListener("change", (e) => {
+            const testOpts = newQuestion.querySelector(".test-options");
+            const openOpts = newQuestion.querySelector(".open-options");
+            if (e.target.value === "test") {
+              testOpts.style.display = "block";
+              openOpts.style.display = "none";
+            } else {
+              testOpts.style.display = "none";
+              openOpts.style.display = "block";
+            }
+          });
+          newQuestion.querySelector(".remove-question").addEventListener("click", () => {
+            newQuestion.remove();
+            updateQuestionLabels();
+          });
+          updateQuestionLabels();
+        });
+      }
+
+      // Add change listeners to existing question
+      document.querySelectorAll(".question-type").forEach(select => {
+        select.addEventListener("change", (e) => {
+          const questionDiv = e.target.closest(".quiz-question");
+          const testOpts = questionDiv.querySelector(".test-options");
+          const openOpts = questionDiv.querySelector(".open-options");
+          if (e.target.value === "test") {
+            testOpts.style.display = "block";
+            openOpts.style.display = "none";
+          } else {
+            testOpts.style.display = "none";
+            openOpts.style.display = "block";
+          }
+        });
+      });
+
+      function updateQuestionLabels() {
+        document.querySelectorAll(".quiz-question").forEach((q, index) => {
+          q.querySelector("label").textContent = `Вопрос ${index + 1}`;
+          q.dataset.index = index;
+        });
+      }
+
+      if (createArtifactButton) {
+        createArtifactButton.addEventListener("click", async () => {
+
+          const name = artifactNameInput ? artifactNameInput.value : "";
+          const museumId = artifactMuseumInput
+            ? Number(artifactMuseumInput.value)
+            : 0;
+          const difficulty = artifactDifficultyInput
+            ? artifactDifficultyInput.value
+            : "";
+          const minigame = artifactMinigameSelect
+            ? artifactMinigameSelect.value
+            : "puzzle";
+          let quizQuestionsData = [];
+          if (minigame === "quiz") {
+            const questions = quizQuestions.querySelectorAll(".quiz-question");
+            if (questions.length === 0) {
+              showToast("Добавьте хотя бы один вопрос для квиза.");
+              return;
+            }
+            questions.forEach(q => {
+              const type = q.querySelector(".question-type").value;
+              const text = q.querySelector(".question-text").value.trim();
+              if (!text) return;
+              if (type === "test") {
+                const correct = q.querySelector(".correct-answer").value.trim();
+                const wrong1 = q.querySelector(".wrong-answer1").value.trim();
+                const wrong2 = q.querySelector(".wrong-answer2").value.trim();
+                const wrong3 = q.querySelector(".wrong-answer3").value.trim();
+                if (!correct || !wrong1 || !wrong2 || !wrong3) return;
+                quizQuestionsData.push({
+                  type: "test",
+                  question: text,
+                  correct_answer: correct,
+                  wrong_answers: [wrong1, wrong2, wrong3]
+                });
+              } else {
+                const answer = q.querySelector(".open-answer").value.trim();
+                if (!answer) return;
+                quizQuestionsData.push({
+                  type: "open",
+                  question: text,
+                  answer: answer
+                });
+              }
+            });
+            if (quizQuestionsData.length === 0) {
+              showToast("Заполните все поля вопросов.");
+              return;
+            }
+          }
+          const file = artifactImageInput ? artifactImageInput.files[0] : null;
+          if (!selectedArtifactPoint) {
+            showToast("Сначала отметьте точку на карте музея.");
+            return;
+          }
+          const formData = new FormData();
+          formData.append("name", name);
+          formData.append("museum_id", String(museumId));
+          formData.append("difficulty", difficulty);
+          formData.append("minigame", minigame);
+          formData.append("map_x", String(selectedArtifactPoint.x));
+          formData.append("map_y", String(selectedArtifactPoint.y));
+          if (quizQuestionsData.length > 0) {
+            formData.append("quiz_questions", JSON.stringify(quizQuestionsData));
+          }
+          if (file) {
+            formData.append("image", file);
+          }
+          const response = await fetch("/api/admin/artifacts", {
+            method: "POST",
+            body: formData,
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            showToast(result.error || "Ошибка сохранения артефакта.");
+            return;
+          }
+          selectedArtifactPoint = null;
+          renderAdminLocationMap();
+          await refreshAdminData();
+          await loadMuseums();
+          if (artifactNameInput) artifactNameInput.value = "";
+          if (artifactDifficultyInput) artifactDifficultyInput.value = "";
+          if (artifactImageInput) artifactImageInput.value = "";
+        });
+      }
+
+
+
+      if (locationLandscape && locationPanLayer) {
+        locationLandscape.addEventListener("pointerdown", (event) => {
+          if (event.button !== 0) {
+            return;
+          }
+          event.preventDefault();
+          isPanningLocation = true;
+          locationPanPointerId = event.pointerId;
+          locationPanStartX = event.clientX - locationPanX;
+          locationPanStartY = event.clientY - locationPanY;
+          locationLandscape.setPointerCapture(event.pointerId);
+          locationPanLayer.style.cursor = "grabbing";
+          locationPanLayer.style.transition = "none";
+        });
+
+        locationLandscape.addEventListener("pointermove", (event) => {
+          if (!isPanningLocation || locationPanPointerId !== event.pointerId) {
+            return;
+          }
+          event.preventDefault();
+          const overscroll = 90;
+          const bounds = getLocationPanBounds();
+          const nextX = event.clientX - locationPanStartX;
+          const nextY = event.clientY - locationPanStartY;
+          locationPanX = Math.min(bounds.maxX + overscroll, Math.max(bounds.minX - overscroll, nextX));
+          locationPanY = Math.min(bounds.maxY + overscroll, Math.max(bounds.minY - overscroll, nextY));
+          applyLocationPan(locationPanX, locationPanY, false);
+          updateLocationFog(locationPanX, locationPanY);
+        });
+
+        const finishPan = (event) => {
+          if (!isPanningLocation || (event && locationPanPointerId !== event.pointerId)) {
+            return;
+          }
+          isPanningLocation = false;
+
+          const bounds = getLocationPanBounds();
+          const overscrollX = Math.max(bounds.minX - locationPanX, 0, locationPanX - bounds.maxX);
+          const overscrollY = Math.max(bounds.minY - locationPanY, 0, locationPanY - bounds.maxY);
+          const overscroll = Math.max(overscrollX, overscrollY);
+          const autoCenterThreshold = 60;
+
+          if (overscroll > autoCenterThreshold) {
+            resetLocationPan(true);
+          } else {
+            const clamped = clampLocationPan(locationPanX, locationPanY);
+            locationPanX = clamped.x;
+            locationPanY = clamped.y;
+            applyLocationPan(locationPanX, locationPanY, true);
+            updateLocationFog(locationPanX, locationPanY);
+          }
+
+          locationPanLayer.style.cursor = "grab";
+          if (event && locationLandscape.hasPointerCapture(event.pointerId)) {
+            locationLandscape.releasePointerCapture(event.pointerId);
+          }
+          locationPanPointerId = null;
+        };
+
+        locationLandscape.addEventListener("pointerup", finishPan);
+        locationLandscape.addEventListener("pointercancel", finishPan);
+        locationLandscape.addEventListener("dragstart", (event) => {
+          event.preventDefault();
+        });
+        window.addEventListener("resize", () => {
+          const clamped = clampLocationPan(locationPanX, locationPanY);
+          locationPanX = clamped.x;
+          locationPanY = clamped.y;
+          applyLocationPan(locationPanX, locationPanY, true);
+          updateLocationFog(locationPanX, locationPanY);
+        });
+      }
+
+      if (backToMapButton) {
+        backToMapButton.addEventListener("click", () => {
+          showScreen("map");
+        });
+      }
+
+      // Puzzle game event listeners
+      if (puzzleQuitBtn) {
+        puzzleQuitBtn.addEventListener("click", () => {
+          showScreen("museum-location");
+          puzzleResult?.classList.add('hidden');
+        });
+      }
+
+      if (puzzleResetBtn) {
+        puzzleResetBtn.addEventListener("click", () => {
+          resetPuzzle();
+        });
+      }
+
+      if (puzzleHintBtn) {
+        puzzleHintBtn.addEventListener("click", () => {
+          showToast("Расставьте плитки так, чтобы изображение было собрано.");
+        });
+      }
+
+      if (puzzleClaimBtn) {
+        puzzleClaimBtn.addEventListener("click", () => {
+          claimPuzzleArtifact();
+        });
+      }
+
+      // Quiz game event listeners
+      if (quizQuitBtn) {
+        quizQuitBtn.addEventListener("click", () => {
+          showScreen("museum-location");
+          quizResult?.classList.add('hidden');
+        });
+      }
+
+      if (quizAnswers) {
+        quizAnswers.addEventListener("click", (e) => {
+          if (e.target.classList.contains('quiz-answer-btn')) {
+            quizSelectedAnswer = e.target.dataset.answer;
+            checkQuizAnswer(quizSelectedAnswer);
+          }
+        });
+      }
+
+      if (quizSubmitOpen) {
+        quizSubmitOpen.addEventListener("click", () => {
+          const answer = quizOpenInput.value.trim();
+          if (answer) {
+            checkQuizAnswer(answer);
+          }
+        });
+      }
+
+      if (quizClaimBtn) {
+        quizClaimBtn.addEventListener("click", () => {
+          claimQuizArtifact();
+        });
+      }
+
+      if (quizRetryBtn) {
+        quizRetryBtn.addEventListener("click", () => {
+          initQuizGame(quizCurrentArtifact);
+        });
+      }
+
+      if (artifactMuseumInput) {
+        artifactMuseumInput.addEventListener("change", () => {
+          adminMapMuseumId = Number(artifactMuseumInput.value || 0);
+          selectedArtifactPoint = null;
+          renderAdminLocationMap();
+        });
+      }
+
+      if (adminLocationMap) {
+        adminLocationMap.addEventListener("click", (event) => {
+          const mapRect = adminLocationMap.getBoundingClientRect();
+          const x = ((event.clientX - mapRect.left) / mapRect.width) * 100;
+          const y = ((event.clientY - mapRect.top) / mapRect.height) * 100;
+          selectedArtifactPoint = normalizeMapPoint(x, y);
+          if (artifactPointHint) {
+            artifactPointHint.textContent = `Точка выбрана: ${selectedArtifactPoint.x.toFixed(1)}%, ${selectedArtifactPoint.y.toFixed(1)}%`;
+          }
+          renderAdminLocationMap();
+        });
+      }
+
+      if (museumList) {
+        museumList.addEventListener("click", async (event) => {
+          const editButton = event.target.closest(".edit-museum");
+          const deleteButton = event.target.closest(".delete-museum");
+
+          if (editButton) {
+            const museumId = Number(editButton.dataset.id);
+            const museum = adminMuseums.find((item) => Number(item.id) === museumId);
+            if (!museum) {
+              return;
+            }
+            adminEditingMuseumId = museumId;
+            if (museumNameInput) museumNameInput.value = museum.name || "";
+            if (museumDescriptionInput) museumDescriptionInput.value = museum.description || "";
+            if (museumAddressInput) museumAddressInput.value = museum.address || "";
+            if (museumCityInput) museumCityInput.value = museum.city || "";
+            if (museumCoordinatesInput) museumCoordinatesInput.value = museum.coordinates || "";
+            if (createMuseumButton) createMuseumButton.textContent = "Обновить музей";
+            return;
+          }
+
+          if (deleteButton) {
+            const museumId = Number(deleteButton.dataset.id);
+            const response = await fetch(`/api/admin/museums/${museumId}`, {
+              method: "DELETE",
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              showToast(result.error || "Ошибка удаления музея.");
+              return;
+            }
+            showToast("Музей удалён.");
+            if (adminEditingMuseumId === museumId) {
+              adminEditingMuseumId = null;
+              if (createMuseumButton) createMuseumButton.textContent = "Сохранить музей";
+            }
+            await loadMuseums();
+            await refreshAdminData();
+          }
+        });
+      }
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          tabs.forEach((btn) => btn.classList.remove("active"));
+          tab.classList.add("active");
+          panels.forEach((panel) => {
+            panel.classList.toggle("active", panel.dataset.panel === tab.dataset.tab);
+          });
+        });
+      });
+
+      itemCards.forEach((card) => {
+        card.addEventListener("click", () => {
+          card.classList.toggle("expanded");
+        });
+      });
+
+      if (carousel) {
+        carousel.addEventListener("wheel", (event) => {
+          event.preventDefault();
+          const activeTile = carousel.querySelector(".museum-tile.active");
+          const currentIndex = activeTile ? Number(activeTile.dataset.index) : 0;
+          const direction = event.deltaY > 0 ? 1 : -1;
+          const nextIndex = Math.min(
+            Math.max(currentIndex + direction, 0),
+            museumTiles.length - 1
+          );
+          updateCarousel(nextIndex);
+        });
+      }
+
+      const loadMuseums = async () => {
+        const response = await fetch("/api/museums");
+        if (!response.ok) {
+          return;
+        }
+        const data = await response.json();
+        let adminArtifacts = [];
+        try {
+          const adminResponse = await fetch("/api/admin/data");
+          if (adminResponse.ok) {
+            const adminData = await adminResponse.json();
+            adminArtifacts = adminData.artifacts || [];
+          }
+        } catch (error) {
+          adminArtifacts = [];
+        }
+
+        const museumsWithArtifacts = data.map((museum) => ({
+          ...museum,
+          artifacts: adminArtifacts.filter((artifact) => artifact.museum_id === museum.id),
+        }));
+
+        renderMuseums(museumsWithArtifacts);
+        availableCities = getCitiesFromMuseums(museumsWithArtifacts);
+        if (!availableCities.length) {
+          availableCities = ["Севастополь"];
+        }
+        if (!availableCities.includes(activeCity)) {
+          activeCity = availableCities[0];
+        }
+        renderCityPicker(availableCities, activeCity);
+        renderCityMuseums(activeCity);
+        renderAdminMuseumOptions(museumsWithArtifacts);
+        renderAdminLocationMap();
+        await renderCityMap(activeCity);
+      };
+
+      if (cityPicker) {
+        cityPicker.addEventListener("click", (event) => {
+          const button = event.target.closest(".city-item");
+          if (!button) {
+            return;
+          }
+          const city = button.dataset.city;
+          if (!city) {
+            return;
+          }
+          activeCity = city;
+          renderCityPicker(availableCities, activeCity);
+          renderCityMuseums(activeCity);
+          renderCityMap(activeCity);
+        });
+      }
+
+      window.enterMuseumLocation = (museumId) => openMuseumLocation(Number(museumId));
+
+      loadMuseums();
+      setCoins(coins);
+      applyInventory({});
+      showScreen("login");
+    </script>
+  </body>
+</html>

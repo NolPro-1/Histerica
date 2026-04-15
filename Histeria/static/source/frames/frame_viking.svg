@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" shape-rendering="crispEdges">
+  <!-- Viking Rune Frame - pixel art -->
+  <rect x="0" y="0" width="80" height="4" fill="#4A4A4A"/>
+  <rect x="0" y="76" width="80" height="4" fill="#4A4A4A"/>
+  <rect x="0" y="0" width="4" height="80" fill="#4A4A4A"/>
+  <rect x="76" y="0" width="4" height="80" fill="#4A4A4A"/>
+  <!-- inner ice blue -->
+  <rect x="4" y="4" width="72" height="2" fill="#5F9EA0"/>
+  <rect x="4" y="74" width="72" height="2" fill="#5F9EA0"/>
+  <rect x="4" y="4" width="2" height="72" fill="#5F9EA0"/>
+  <rect x="74" y="4" width="2" height="72" fill="#5F9EA0"/>
+  <!-- rune marks top -->
+  <rect x="16" y="0" width="2" height="6" fill="#87CEEB"/>
+  <rect x="18" y="2" width="2" height="2" fill="#87CEEB"/>
+  <rect x="30" y="0" width="2" height="6" fill="#87CEEB"/>
+  <rect x="28" y="2" width="2" height="2" fill="#87CEEB"/>
+  <rect x="48" y="0" width="2" height="6" fill="#87CEEB"/>
+  <rect x="50" y="2" width="2" height="2" fill="#87CEEB"/>
+  <rect x="62" y="0" width="2" height="6" fill="#87CEEB"/>
+  <rect x="60" y="2" width="2" height="2" fill="#87CEEB"/>
+  <!-- rune marks bottom -->
+  <rect x="16" y="74" width="2" height="6" fill="#87CEEB"/>
+  <rect x="18" y="76" width="2" height="2" fill="#87CEEB"/>
+  <rect x="30" y="74" width="2" height="6" fill="#87CEEB"/>
+  <rect x="28" y="76" width="2" height="2" fill="#87CEEB"/>
+  <rect x="48" y="74" width="2" height="6" fill="#87CEEB"/>
+  <rect x="50" y="76" width="2" height="2" fill="#87CEEB"/>
+  <rect x="62" y="74" width="2" height="6" fill="#87CEEB"/>
+  <rect x="60" y="76" width="2" height="2" fill="#87CEEB"/>
+  <!-- corner shields -->
+  <rect x="6" y="6" width="8" height="8" fill="#4A4A4A"/>
+  <rect x="8" y="8" width="4" height="4" fill="#87CEEB"/>
+  <rect x="66" y="6" width="8" height="8" fill="#4A4A4A"/>
+  <rect x="68" y="8" width="4" height="4" fill="#87CEEB"/>
+  <rect x="6" y="66" width="8" height="8" fill="#4A4A4A"/>
+  <rect x="8" y="68" width="4" height="4" fill="#87CEEB"/>
+  <rect x="66" y="66" width="8" height="8" fill="#4A4A4A"/>
+  <rect x="68" y="68" width="4" height="4" fill="#87CEEB"/>
+</svg>
